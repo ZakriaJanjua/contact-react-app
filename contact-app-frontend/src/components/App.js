@@ -8,6 +8,7 @@ import ContactDetail from './ContactDetail'
 import DeleteContact from './DeleteContact'
 import api from '../api/contacts'
 import { uuid } from 'uuidv4';
+import EditContact from './EditContact';
 
 function App() {
 
@@ -23,7 +24,6 @@ function App() {
     }
 
     const response = await api.post("/contacts", request)
-    console.log(response)
     setContact([...contacts, response.data])
   }
 
@@ -35,12 +35,27 @@ function App() {
     setContact(newContactList)
   }
 
+  const updateContactHandler = async (name, email, id) => {
+    const request = {
+      id:id,
+      name:name,
+      email:email
+    }
+    const response = await api.put(`/contacts/${id}`, request)
+    const {rid, rname, remail} = response.data
+    setContact(
+      contacts.map((request) => {
+        return request.id === rid ? {...response.data} : request
+      })
+    )
+  }
+
   //Retrieve Contacts
   const retrieveContacts = async () => {
     const response = await api.get('/contacts')
     return response.data
   }
-
+  
   useEffect(() => {
     // const retrieveContacts = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY))
     // if (retrieveContacts) setContact(retrieveContacts)
@@ -51,12 +66,13 @@ function App() {
     }
 
     getAllContacts()
-  }, [])
-
-  useEffect(() => {
-   // localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contacts))
   }, [contacts])
-
+  
+  useEffect(() => {
+    // localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contacts))
+   }, [contacts])
+ 
+  
   return (
     <div className='ui container'>
       <Router>
@@ -65,6 +81,7 @@ function App() {
           <Route path='/' exact render={ (props) => <ContactList {...props} contacts={contacts} />}/>
           <Route path='/add' render={ (props) => <AddContact {...props} addContactHandler={contactHandler} />}/>
           <Route path='/contact/:id' component={ContactDetail}/>
+          <Route path='/edit' render = { (props) => <EditContact {...props} updateContactHandler={updateContactHandler}/> }/>
           <Route path='/delete/:id' render={(props) => <DeleteContact {...props} getDeleteContactId={removeContactHandler} />}/>
         </Switch>
       </Router>
